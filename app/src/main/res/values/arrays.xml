@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- LSPosed 作用域推荐：仅 AI 通话（用户指定只 hook 这个包） -->
+    <string-array name="xposed_scope">
+        <item>com.xiaomi.aiasst.service</item>
+    </string-array>
+</resources>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v1.0.26 Spinner 收起态（未展开时）显示的样式，与 item_spinner 一致 -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/surface"
+    android:ellipsize="end"
+    android:gravity="center_vertical"
+    android:maxLines="1"
+    android:paddingStart="12dp"
+    android:paddingEnd="28dp"
+    android:textColor="@color/text_primary"
+    android:textSize="13sp" />

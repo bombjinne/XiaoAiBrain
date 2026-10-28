@@ -1,0 +1,24 @@
+# 构建产物
+build/
+app/build/
+.gradle/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# 本地环境（含 SDK 路径，每台机器不同，不入库）
+local.properties
+
+# IDE
+.idea/
+*.iml
+*.hprof
+
+# 签名文件（绝不入库）
+*.jks
+*.keystore
+signing.properties
+
+# 日志与临时文件
+*.log
+*.bin

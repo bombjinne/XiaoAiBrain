@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  v1.0.25 顶部总开关胶囊
+  旧版用平台 Switch（白色拇指 + 半透明白轨道）压在紫渐变 App Bar 上 → 同色低对比、几乎不可见。
+  改为「胶囊 + 圆点 + 文字」自绘开关，两态对比强烈：
+    开启 = 纯白胶囊 + 品牌紫圆点/文字
+    关闭 = 半透明深色胶囊 + 白色描边 + 白圆点/白字
+  状态由代码 setSelected() 驱动。
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_selected="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFFFFF" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#26FFFFFF" />
+            <stroke android:width="1dp" android:color="#66FFFFFF" />
+            <corners android:radius="20dp" />
+        </shape>
+    </item>
+</selector>

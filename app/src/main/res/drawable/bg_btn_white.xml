@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 白色幽灵按钮（清空）：白底 + 细边框 + 触摸涟漪 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="@color/brand_soft">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/surface" />
+            <corners android:radius="18dp" />
+            <stroke android:width="1dp" android:color="#D8DBEA" />
+        </shape>
+    </item>
+</ripple>

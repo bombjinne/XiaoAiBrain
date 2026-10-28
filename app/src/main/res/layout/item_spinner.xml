@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v1.0.26 Spinner 下拉项样式：与卡片内其他控件统一（14sp 深色文字 + 12dp 内边距） -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/surface"
+    android:ellipsize="end"
+    android:maxLines="1"
+    android:paddingStart="12dp"
+    android:paddingTop="11dp"
+    android:paddingEnd="12dp"
+    android:paddingBottom="11dp"
+    android:textColor="@color/text_primary"
+    android:textSize="14sp" />

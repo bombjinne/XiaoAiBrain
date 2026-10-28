@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  v1.0.26 AI 气泡 —— 微信式「在右」
+  结构：[弹性占位 spacer weight=1][气泡][AI 头像]
+  开头的 weight=1 占位块吃掉剩余宽度 → 气泡与头像整体永远靠右。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="top"
+    android:orientation="horizontal">
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1" />
+
+    <TextView
+        android:id="@+id/tvBubble"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/bg_bubble_ai"
+        android:lineSpacingExtra="2dp"
+        android:paddingStart="12dp"
+        android:paddingTop="9dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="9dp"
+        android:textColor="@color/white"
+        android:textSize="14sp" />
+
+    <ImageView
+        android:id="@+id/ivAvatar"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:contentDescription="AI 头像"
+        android:scaleType="centerCrop"
+        android:src="@drawable/avatar_ai" />
+</LinearLayout>

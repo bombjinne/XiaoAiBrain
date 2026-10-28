@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  输入框光标（v1.0.24）：
+  之前主题把 colorControlActivated 设为白色（给 App Bar 里的 Switch 用），
+  而 EditText 的光标/选区手柄颜色正是取自 colorControlActivated → 光标变白、
+  在浅色输入框上完全看不见。现在：
+    ① 主题里 colorControlActivated 恢复品牌色（覆盖 Android 10 以下设备）；
+    ② 每个 EditText 显式指定本光标 drawable（Android 10+ 确定性生效）。
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/brand" />
+    <size android:width="1.8dp" />
+</shape>

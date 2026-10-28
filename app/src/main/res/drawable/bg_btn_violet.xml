@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 清空按钮（v1.0.24）：紫罗兰实底 + 白色文字（旧版白底紫字对比度差、看不见） -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#40FFFFFF">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/brand_violet" />
+            <corners android:radius="18dp" />
+        </shape>
+    </item>
+</ripple>

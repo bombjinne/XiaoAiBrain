@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 顶部 App Bar：靛蓝 → 紫罗兰 对角渐变 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <gradient
+        android:startColor="@color/brand"
+        android:endColor="@color/brand_violet"
+        android:angle="315" />
+    <corners
+        android:bottomLeftRadius="24dp"
+        android:bottomRightRadius="24dp" />
+</shape>

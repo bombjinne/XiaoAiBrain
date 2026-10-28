@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 单条诊断日志（RecyclerView 条目）。只渲染可见行，避免一次性把上千行塞进一个 TextView -->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/tvLine"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fontFamily="monospace"
+    android:textSize="10sp"
+    android:lineSpacingExtra="2dp"
+    android:paddingStart="10dp"
+    android:paddingEnd="10dp"
+    android:paddingTop="2dp"
+    android:paddingBottom="2dp" />

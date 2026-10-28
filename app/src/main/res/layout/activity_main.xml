@@ -1,0 +1,809 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  XiaoAiBrain 配置页 v1.0.25 —— 微信式聊天 + 可见总开关
+  品牌：靛蓝 #4F6EF7 → 紫罗兰 #7C5CFF；Material 3 + Apple HIG spacing/圆角体系
+
+  相对 v1.0.24 的改动：
+   1) 「测试连接」改深色渐变底 + 纯白粗体字（旧淡紫底看不清字）；
+      测试成功/失败改为 Toast 提示（结果仍同步到 tvStatus 便于回看）；
+   2) 顶部总开关重设计：平台 Switch（白拇指+半透明白轨道压在紫渐变上）几乎不可见，
+      改为「胶囊 + 状态圆点 + 文字」自绘开关，两态对比强烈；
+   3) 通话记录改为微信式气泡：对方在左（白底气泡 + 对方头像），
+      AI 在右（品牌紫渐变气泡 + AI 头像），头像 30dp 小尺寸；
+   4) 聊天气泡逐条 append（只增不重建），避免轮询全量重建导致闪烁/失焦。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_page"
+    android:orientation="vertical">
+
+    <!-- ═══ 顶部 App Bar：品牌渐变 + 圆角底 ═══ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_appbar"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="14dp">
+
+        <ImageView
+            android:layout_width="42dp"
+            android:layout_height="42dp"
+            android:contentDescription="应用图标"
+            android:src="@mipmap/ic_launcher_gen" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="小爱大脑"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:text="小爱通话接入大模型"
+                android:textColor="#CFD4FF"
+                android:textSize="11sp" />
+        </LinearLayout>
+
+        <!-- v1.0.25 总开关：胶囊 + 圆点 + 文字，两态均高对比 -->
+        <LinearLayout
+            android:id="@+id/llToggle"
+            android:layout_width="wrap_content"
+            android:layout_height="36dp"
+            android:background="@drawable/bg_toggle_pill"
+            android:clickable="true"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="12dp"
+            android:paddingEnd="14dp">
+
+            <View
+                android:id="@+id/vToggleDot"
+                android:layout_width="9dp"
+                android:layout_height="9dp"
+                android:background="@drawable/bg_toggle_dot" />
+
+            <TextView
+                android:id="@+id/tvToggleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="7dp"
+                android:text="已开启"
+                android:textColor="@color/white"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- 外层滚动：NestedScrollView 是标准嵌套滚动父容器，与内层协作流畅 -->
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/svRoot"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:paddingBottom="12dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="12dp">
+
+            <!--
+              v1.0.26 存储权限提示条：仅在缺少「所有文件访问」时显示。
+              点整条 → 系统设置页开启（MANAGE_EXTERNAL_STORAGE 是 AppOps，
+              系统不提供运行时弹窗，只能跳设置页手动开）。
+            -->
+            <LinearLayout
+                android:id="@+id/llPermWarn"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_perm_warn"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="14dp"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="需要「所有文件访问」权限"
+                        android:textColor="#8A5A00"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="3dp"
+                        android:text="未授权时无法把模型/Key 写入共享目录，小爱侧读不到配置。点这里去授权。"
+                        android:textColor="#A06A00"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="10dp"
+                    android:text="去授权 ›"
+                    android:textColor="#B26A00"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- ═══ 分区：接口设置 ═══ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginBottom="8dp"
+                android:text="接口设置"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Base URL（OpenAI 兼容接口）"
+                    android:textColor="@color/text_sub"
+                    android:textSize="12sp" />
+
+                <EditText
+                    android:id="@+id/etBaseUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_edit_text"
+                    android:imeOptions="actionNext"
+                    android:inputType="textUri"
+                    android:minHeight="48dp"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_faint"
+                    android:textCursorDrawable="@drawable/bg_cursor"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="API Key"
+                    android:textColor="@color/text_sub"
+                    android:textSize="12sp" />
+
+                <!-- API Key + 眼睛按钮（点击切换明文/密文） -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/etApiKey"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_text"
+                        android:imeOptions="actionNext"
+                        android:inputType="textPassword"
+                        android:minHeight="48dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:singleLine="true"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_faint"
+                        android:textCursorDrawable="@drawable/bg_cursor"
+                        android:textSize="15sp" />
+
+                    <ImageButton
+                        android:id="@+id/btnEye"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="8dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="显示或隐藏 API Key"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_visibility"
+                        android:tint="@color/brand" />
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:text="模型名"
+                    android:textColor="@color/text_sub"
+                    android:textSize="12sp" />
+
+                <!-- v1.0.28：模型名改为【可编辑下拉】—— 点 ⟳ 从服务器拉取清单，
+                     下拉里搜索/选择；列表里没有的也可以直接手打任意模型名 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <AutoCompleteTextView
+                        android:id="@+id/etModel"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_edit_text"
+                        android:completionThreshold="1"
+                        android:dropDownHeight="240dp"
+                        android:dropDownVerticalOffset="2dp"
+                        android:hint="例如 qwen-plus"
+                        android:imeOptions="actionNext"
+                        android:inputType="textNoSuggestions"
+                        android:minHeight="48dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:popupBackground="@color/surface"
+                        android:singleLine="true"
+                        android:textColor="@color/text_primary"
+                        android:textColorHint="@color/text_faint"
+                        android:textCursorDrawable="@drawable/bg_cursor"
+                        android:textSize="15sp" />
+
+                    <ImageButton
+                        android:id="@+id/btnFetchModels"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="8dp"
+                        android:background="?android:attr/selectableItemBackgroundBorderless"
+                        android:contentDescription="从服务器获取模型列表"
+                        android:padding="10dp"
+                        android:src="@drawable/ic_refresh"
+                        android:tint="@color/brand" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvModelHint"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="点右侧 ⟳ 从服务器获取模型清单；点输入框可下拉，已获取的模型可搜索选择"
+                    android:textColor="@color/text_faint"
+                    android:textSize="11sp" />
+
+                <!-- v1.0.25：深色渐变底 + 白色粗体字（浅底白字不可读） -->
+                <Button
+                    android:id="@+id/btnTest"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_btn_test"
+                    android:text="测试连接"
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <!-- ═══ 分区：模型参数 ═══ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="模型参数"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="LLM 超时"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvTimeoutVal"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="10 秒"
+                        android:textColor="@color/brand"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <SeekBar
+                    android:id="@+id/sbTimeout"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:max="29"
+                    android:progress="9"
+                    android:progressBackgroundTint="#DDE0EC"
+                    android:progressTint="@color/brand"
+                    android:thumbTint="@color/brand" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="上下文轮数"
+                        android:textColor="@color/text_sub"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/etTurns"
+                        android:layout_width="64dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_edit_text"
+                        android:inputType="number"
+                        android:minHeight="44dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="@color/text_primary"
+                        android:textCursorDrawable="@drawable/bg_cursor"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:text="最大 Tokens"
+                        android:textColor="@color/text_sub"
+                        android:textSize="12sp" />
+
+                    <EditText
+                        android:id="@+id/etMaxTokens"
+                        android:layout_width="76dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:background="@drawable/bg_edit_text"
+                        android:inputType="number"
+                        android:minHeight="44dp"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textColor="@color/text_primary"
+                        android:textCursorDrawable="@drawable/bg_cursor"
+                        android:textSize="14sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ═══ 分区：人设提示词 ═══ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="人设提示词"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <EditText
+                    android:id="@+id/etSystem"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_edit_text"
+                    android:gravity="top"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:imeOptions="actionDone"
+                    android:minHeight="48dp"
+                    android:minLines="4"
+                    android:paddingStart="14dp"
+                    android:paddingTop="12dp"
+                    android:paddingEnd="14dp"
+                    android:paddingBottom="12dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_faint"
+                    android:textCursorDrawable="@drawable/bg_cursor"
+                    android:textSize="15sp" />
+            </LinearLayout>
+
+            <!-- ═══ 分区：通话记录（微信式气泡） ═══ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="通话记录"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:contentDescription="AI 头像"
+                        android:src="@drawable/avatar_ai" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:text="小爱接管对话"
+                        android:textColor="@color/text_primary"
+                        android:textSize="15sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnClearChat"
+                        android:layout_width="wrap_content"
+                        android:layout_height="34dp"
+                        android:background="@drawable/bg_btn_violet"
+                        android:minWidth="0dp"
+                        android:minHeight="0dp"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:text="清空"
+                        android:textColor="@color/white"
+                        android:textSize="12sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:contentDescription="对方头像"
+                        android:src="@drawable/avatar_user" />
+
+                    <TextView
+                        android:id="@+id/tvCaller"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:text="通话对象：等待通话…"
+                        android:textColor="@color/text_sub"
+                        android:textSize="13sp" />
+                </LinearLayout>
+
+                <!-- v1.0.25：微信式对话流。llChat 只做 append，绝不 removeAllViews 重建 -->
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/svChat"
+                    android:layout_width="match_parent"
+                    android:layout_height="260dp"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_panel_soft"
+                    android:padding="12dp">
+
+                    <LinearLayout
+                        android:id="@+id/llChat"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tvChatEmpty"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center"
+                            android:paddingTop="24dp"
+                            android:paddingBottom="24dp"
+                            android:text="（还没有通话内容）"
+                            android:textColor="@color/text_faint"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
+            </LinearLayout>
+
+            <!-- ═══ 分区：历史通话（SQLite 持久化 + 筛选） ═══ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="历史通话"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <!-- 筛选：通话人 + 时间范围 -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
+
+                    <Spinner
+                        android:id="@+id/spCaller"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_spinner"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="4dp" />
+
+                    <Spinner
+                        android:id="@+id/spRange"
+                        android:layout_width="0dp"
+                        android:layout_height="44dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_spinner"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="4dp" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/tvHistoryStat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="共 0 通电话"
+                    android:textColor="@color/text_sub"
+                    android:textSize="12sp" />
+
+                <LinearLayout
+                    android:id="@+id/llHistory"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical" />
+
+                <TextView
+                    android:id="@+id/tvHistoryEmpty"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:paddingTop="18dp"
+                    android:paddingBottom="18dp"
+                    android:text="（还没有历史通话记录）"
+                    android:textColor="@color/text_faint"
+                    android:textSize="13sp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/btnRefreshHistory"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_btn_secondary"
+                        android:minHeight="0dp"
+                        android:text="刷新"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+
+                    <Button
+                        android:id="@+id/btnClearHistory"
+                        android:layout_width="0dp"
+                        android:layout_height="40dp"
+                        android:layout_marginStart="10dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_btn_danger"
+                        android:minHeight="0dp"
+                        android:text="清空历史"
+                        android:textColor="@color/white"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- ═══ 分区：诊断日志 ═══ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="诊断日志"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_card"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:id="@+id/llLogHeader"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="12dp"
+                    android:paddingBottom="12dp">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="运行日志（点击展开）"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp" />
+
+                    <TextView
+                        android:id="@+id/tvLogHint"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="点击展开 ▾"
+                        android:textColor="@color/brand"
+                        android:textSize="12sp" />
+                </LinearLayout>
+
+                <androidx.core.widget.NestedScrollView
+                    android:id="@+id/svLog"
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:layout_marginBottom="12dp"
+                    android:background="@drawable/bg_panel_soft"
+                    android:padding="12dp"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/tvLog"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="monospace"
+                        android:text="（暂无日志）"
+                        android:textColor="@color/text_sub"
+                        android:textSize="10sp" />
+                </androidx.core.widget.NestedScrollView>
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="配置已就绪，修改后自动保存。"
+                android:textColor="@color/text_sub"
+                android:textSize="13sp" />
+
+            <TextView
+                android:id="@+id/tvLogPath"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="monospace"
+                android:textColor="@color/text_faint"
+                android:textSize="10sp" />
+
+            <!-- hook 状态提示（版本号正上方） -->
+            <TextView
+                android:id="@+id/tvHookStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Hook 状态：检测中…"
+                android:textColor="@color/text_sub"
+                android:textSize="11sp" />
+
+            <TextView
+                android:id="@+id/tvVersion"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:textColor="@color/text_faint"
+                android:textSize="11sp" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- ═══ 固定底部操作栏：保存（品牌渐变，全宽） ═══ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/surface"
+        android:elevation="8dp"
+        android:orientation="horizontal"
+        android:padding="12dp">
+
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:background="@drawable/bg_btn_primary"
+            android:text="保存配置"
+            android:textColor="@color/white"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+</LinearLayout>

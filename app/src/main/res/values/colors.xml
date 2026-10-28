@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- XiaoAiBrain 品牌色板 v1.0.24：靛蓝 → 紫罗兰，现代科技感 -->
+<resources>
+    <color name="brand">#4F6EF7</color>
+    <color name="brand_dark">#3B54D9</color>
+    <color name="brand_violet">#7C5CFF</color>
+    <color name="brand_soft">#EDEFFC</color>
+    <color name="bg_page">#F4F5FB</color>
+    <color name="surface">#FFFFFF</color>
+    <color name="surface_soft">#F6F7FC</color>
+    <color name="text_primary">#191B2A</color>
+    <color name="text_sub">#6C7186</color>
+    <color name="text_faint">#9AA0B4</color>
+    <color name="border_soft">#E6E7F2</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="teal">#00B39A</color>
+    <!-- v1.0.24：hook 状态提示用色 -->
+    <color name="ok">#00A06D</color>
+    <color name="warn">#D9382B</color>
+</resources>

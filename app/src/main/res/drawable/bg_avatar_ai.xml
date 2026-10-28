@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- AI 头像底：品牌渐变圆 -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <gradient android:startColor="#4F6EF7" android:endColor="#7C5CFF" android:angle="135"/>
+</shape>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- App Bar 开关拇指：选中纯白 / 未选半透白（在品牌紫背景上均清晰） -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true" android:color="@color/white" />
+    <item android:color="#99FFFFFF" />
+</selector>

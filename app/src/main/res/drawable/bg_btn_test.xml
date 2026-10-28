@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  v1.0.25 「测试连接」按钮
+  旧版淡紫底 + 品牌紫字 → 用户反馈"看不到字"。
+  改为深靛蓝→深紫罗兰渐变 + 纯白粗体：
+  白字对 #3B54D9 对比度 ≈6.4:1（WCAG AA 通过），且与底部"保存配置"的亮色渐变形成层级区分。
+-->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#40FFFFFF">
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:startColor="#3B54D9"
+                android:endColor="#6C4FE0"
+                android:angle="0" />
+            <corners android:radius="14dp" />
+        </shape>
+    </item>
+</ripple>

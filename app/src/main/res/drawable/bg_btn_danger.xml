@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v1.0.26 危险操作按钮（"清空历史"）：玫红实底 + 白字，破坏性操作专用色 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#40FFFFFF">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#E5484D" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+</ripple>

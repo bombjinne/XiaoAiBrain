@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- v1.0.26 次级按钮（历史区"刷新"）：品牌紫实底 + 白字，与主按钮区分靠明度 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android"
+    android:color="#40FFFFFF">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="@color/brand_violet" />
+            <corners android:radius="12dp" />
+        </shape>
+    </item>
+</ripple>

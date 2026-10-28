@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  v1.0.26 对方（来电方）气泡 —— 微信式「在左」
+  结构：[头像][气泡][弹性占位 spacer weight=1]
+  末尾的 weight=1 占位块吃掉剩余宽度 → 气泡永远靠左，且不会被拉伸。
+  （v1.0.25 曾用代码 removeView/addView + row gravity=END 动态换边，
+    在部分 ROM 上 gravity 未生效导致 AI 行没贴到右边；改为左右两份布局，
+    用 weight 占位块做对齐，行为确定、不依赖 gravity 解析。）
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:gravity="top"
+    android:orientation="horizontal">
+
+    <ImageView
+        android:id="@+id/ivAvatar"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:contentDescription="对方头像"
+        android:scaleType="centerCrop"
+        android:src="@drawable/avatar_user" />
+
+    <TextView
+        android:id="@+id/tvBubble"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:background="@drawable/bg_bubble_peer"
+        android:lineSpacingExtra="2dp"
+        android:paddingStart="12dp"
+        android:paddingTop="9dp"
+        android:paddingEnd="12dp"
+        android:paddingBottom="9dp"
+        android:textColor="@color/text_primary"
+        android:textSize="14sp" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:layout_weight="1" />
+</LinearLayout>
